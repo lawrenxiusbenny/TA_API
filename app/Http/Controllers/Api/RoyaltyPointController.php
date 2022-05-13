@@ -15,11 +15,7 @@ class RoyaltyPointController extends Controller
         $royalty_point = royalty_point::all();
         $urutan = $royalty_point->count()+1;
 
-        if(count($royalty_point)<10){
-            $id = $id = 'ROYPOI-00'.$urutan;
-        }else{
-            $id = $id = 'ROYPOI-0'.$urutan;
-        }
+        $id = 'ROYPOI-'.mt_rand(100000,999999);
        
         $data = new royalty_point;
         $data->id_royalty_point = $id;
@@ -68,6 +64,31 @@ class RoyaltyPointController extends Controller
     //get data by id
     public function search($id){
         $points = royalty_point::where('id_royalty_point','=', $id)->first();
+        
+        if($points != null){
+            return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil tampil data royalty point',
+                'OUT_DATA' => $points
+            ]);
+        }
+
+        return response([
+            'OUT_STAT' => "F",
+            'OUT_MESSAGE' => 'Tidak ada data royalty point',
+            'OUT_DATA' => null
+        ]);
+    }
+
+    //get data by id
+    public function searchStruk($id){
+
+        $points = DB::table('royalty_points')        
+        ->join('customers','customers.id_royalty_point','royalty_points.id_royalty_point')
+        ->select('royalty_points.jumlah_point')
+        ->where('customers.id_customer','=',$id)
+        ->first();
+
         
         if($points != null){
             return response([

@@ -82,6 +82,27 @@ class KuponDiskonCustomerController extends Controller
         ]);
     }
 
+    public function searchStruk($id){
+        $kupon = DB::table('daftar_kupon_customers')        
+        ->join('daftar_kupon_diskons','daftar_kupon_customers.id_kupon_diskon','daftar_kupon_diskons.id_kupon_diskon')
+        ->select('daftar_kupon_diskons.persentase_potongan')
+        ->where('daftar_kupon_customers.id_kupon_customer','=', $id)
+        ->first();
+        
+        if($kupon != null){
+            return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil tampil data kupon (customer)',
+                'OUT_DATA' => $kupon
+            ]);
+        }
+
+        return response([
+            'OUT_STAT' => "F",
+            'OUT_MESSAGE' => 'Tidak ada data kupon diskon (customer)',
+            'OUT_DATA' => null
+        ]);
+    }
     //get data by id kupon customer
     public function searchByIdCustomer($id){
         $kupon = DB::table('daftar_kupon_customers')        

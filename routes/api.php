@@ -44,6 +44,8 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::delete('pesanan/{id}', 'Api\PesananController@delete'); //delete data pesanan (jumlah)
     Route::put('pesanan-penyajian/{id}', 'Api\PesananController@editPenyajian'); // edit penyajian pesanan
     Route::put('pesanan-checkout/{id_customer}', 'Api\PesananController@checkOut'); //checkout mobile
+    Route::get('pesanan-struk/{id_transaksi}', 'Api\PesananController@searchPesananByTransaksi'); // get all pesanan BY ID transaksi
+    
 
     Route::get('menu', 'Api\MenuController@index'); // get all menu 
     Route::get('menu/{id}', 'Api\MenuController@searchMenu'); // get menu by id menu
@@ -60,10 +62,12 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::put('transaksi/{id_transaksi}', 'Api\TransaksiController@update'); //Update data transaksi
     Route::put('transaksi-status/{id_transaksi}', 'Api\TransaksiController@updateStatusPembayaran'); //Update status transaksi
     Route::delete('transaksi/{id_transaksi}', 'Api\TransaksiController@deleteTransaction'); //Delete data transaksi
+    
 
     Route::post('point', 'Api\RoyaltyPointController@store'); //insert data royalty point
     Route::get('point', 'Api\RoyaltyPointController@index'); //get all data royalty point
     Route::get('point/{id}', 'Api\RoyaltyPointController@search'); //get data royalty point by id
+    Route::get('point-struk/{id}', 'Api\RoyaltyPointController@searchStruk'); //get data royalty point by id
     Route::put('point/{id}', 'Api\RoyaltyPointController@update'); //update data royalty point
     Route::delete('point/{id}', 'Api\RoyaltyPointController@deletePoint'); //Delete data transaksi
 
@@ -76,6 +80,7 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::post('kupon-customer', 'Api\KuponDiskonCustomerController@store'); //insert data kupon diskon
     Route::get('kupon-customer', 'Api\KuponDiskonCustomerController@index'); //get all data kupon diskon
     Route::get('kupon-by-id/{id}', 'Api\KuponDiskonCustomerController@search'); //get data kupon diskon by id
+    Route::get('kupon-struk/{id}', 'Api\KuponDiskonCustomerController@searchStruk'); //get data kupon diskon by id
     Route::get('kupon-by-id-customer/{id}', 'Api\KuponDiskonCustomerController@searchByIdCustomer'); //get data kupon diskon by id customer
     Route::delete('kupon-customer-delete/{id}', 'Api\KuponDiskonCustomerController@deleteKupon'); //soft delete data kupon diskon
     

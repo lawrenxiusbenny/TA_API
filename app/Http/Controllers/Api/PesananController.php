@@ -52,6 +52,7 @@ class PesananController extends Controller
             if($menu!=null){
                 $cekPesanan->sub_total = $menu->harga_menu * $cekPesanan->jumlah_pesanan;
             }
+            $cekPesanan->id_status_pesanan = 1;
 
             if($cekPesanan->save()){
                 return response([
@@ -75,6 +76,7 @@ class PesananController extends Controller
         ->join('menus','menus.id_menu','pesanans.id_menu')
         ->join('customers','customers.id_customer','pesanans.id_customer')
         ->join('status_pesanans','status_pesanans.id_status_pesanan','pesanans.id_status_pesanan')
+        ->where('pesanans.status_selesai','=',0)
         ->orderBy('pesanans.created_at','ASC')
         ->orderBy('pesanans.id_status_pesanan','ASC')
         ->get();
@@ -109,6 +111,7 @@ class PesananController extends Controller
         $pesanan = DB::table('pesanans')
         ->join('menus','menus.id_menu','pesanans.id_menu')
         ->join('customers','customers.id_customer','pesanans.id_customer')
+        ->join('status_pesanans','status_pesanans.id_status_pesanan','pesanans.id_status_pesanan')
         ->where($matchThese)
         ->orderBy('pesanans.created_at','ASC')
         ->orderBy('pesanans.id_status_pesanan','ASC')
@@ -132,6 +135,39 @@ class PesananController extends Controller
             'OUT_STAT' => "F",
             'OUT_MESSAGE' => 'Daftar pesanan masih kosong, silahkan tambah pesanan',
             'OUT_DATA' => null
+        ]);
+    }
+
+    //get pesanan by ID Customer and status_selesai = 0
+    public function searchPesananByTransaksi($id_transaksi){
+        $matchThese = ["pesanans.id_transaksi"=>$id_transaksi];
+        
+        $pesanan = DB::table('pesanans')
+        ->join('transaksis','transaksis.id_transaksi','pesanans.id_transaksi')
+        ->join('menus','menus.id_menu','pesanans.id_menu')
+        ->where($matchThese)
+        ->orderBy('pesanans.created_at','ASC')
+        ->get();
+        
+        $totalHarga = 0;
+        foreach($pesanan as $pes){
+            $totalHarga = $totalHarga + $pes->sub_total;
+        }
+
+        if(count($pesanan)){
+            return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil tampil data pesanan',
+                'OUT_DATA' => $pesanan,
+                'total_harga'=>$totalHarga,
+            ]);
+        }
+
+        return response([
+            'OUT_STAT' => "F",
+            'OUT_MESSAGE' => 'Daftar pesanan masih kosong, silahkan tambah pesanan',
+            'OUT_DATA' => null,
+            'total_harga'=>null,
         ]);
     }
 

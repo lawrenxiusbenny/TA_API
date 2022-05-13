@@ -21,6 +21,7 @@ class TransaksiController extends Controller
         $transaksi->total_harga = $request->total_harga;
         $transaksi->metode_pembayaran = $request->metode_pembayaran;
         $transaksi->nama_metode = $request->nama_metode;
+        $transaksi->status_transaksi = $request->status_transaksi;
 
         $date = new Carbon($request->date);
 
@@ -36,21 +37,43 @@ class TransaksiController extends Controller
 
         if($transaksi->save()){
             $matchThese=["id_customer"=> $request->id_customer, "status_selesai"=>0];
-
-            $pesanan = pesanan::where($matchThese)->get();
-            if($pesanan!=null){
-                foreach($pesanan as $pes){
-                    $pes->status_selesai = 1;
-                    $pes->id_transaksi = $id;
-                    $pes->save();
+            
+            if($request->device != "web"){
+                $pesanan = pesanan::where($matchThese)->get();
+                if($pesanan!=null){
+                    foreach($pesanan as $pes){
+                        $pes->status_selesai = 1;
+                        $pes->id_transaksi = $id;
+                        $pes->save();
+                    }
                 }
-            }
 
-            return response([
-                'OUT_STAT' => "T",
-                'OUT_MESSAGE' => 'Berhasil tambah data transaksi',
-                'OUT_DATA' => $transaksi,
-            ]);
+                return response([
+                    'OUT_STAT' => "T",
+                    'OUT_MESSAGE' => 'Berhasil tambah data transaksi',
+                    'OUT_DATA' => $transaksi,
+                ]);
+            }else{
+                $count = count($request->list_id_pesanan);
+                for( $i = 0; $i < $count; $i++){
+                    $idPesanan = $request->list_id_pesanan[$i];
+                    $matchThese=["id_pesanan"=>$idPesanan];
+                    $pesanan = pesanan::where($matchThese)->get();
+                    if($pesanan!=null){
+                        foreach($pesanan as $pes){
+                            $pes->status_selesai = 1;
+                            $pes->id_transaksi = $id;
+                            $pes->save();
+                        }
+                    }
+                }
+                return response([
+                    'OUT_STAT' => "T",
+                    'OUT_MESSAGE' => 'Berhasil tambah data transaksi',
+                    'OUT_DATA' => $transaksi
+                ]);
+            }
+            
         }else{
             return response([
                 'OUT_STAT' => "F",
@@ -65,7 +88,10 @@ class TransaksiController extends Controller
         $transaksi = DB::table('transaksis')        
         ->join('customers','transaksis.id_customer','customers.id_customer')
         ->join('users','users.id_karyawan','transaksis.id_karyawan')
+        ->select('transaksis.*','customers.id_customer','customers.nama_customer',
+                'users.id_karyawan','users.nama_karyawan')
         ->get();
+
         
         if(count($transaksi)){
             return response([
@@ -119,8 +145,13 @@ class TransaksiController extends Controller
                 'OUT_DATA' => null
             ]);
         }
-
-        $transaksi->status_transaksi = "Lunas";
+        
+        if($transaksi->status_transaksi === "Lunas"){
+            $transaksi->status_transaksi = "Belum Lunas";
+        }else{
+            $transaksi->status_transaksi = "Lunas";
+        }
+        
 
         if($transaksi->save()){
             return response([
