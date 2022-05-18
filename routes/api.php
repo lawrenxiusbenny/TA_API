@@ -83,5 +83,9 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::get('kupon-struk/{id}', 'Api\KuponDiskonCustomerController@searchStruk'); //get data kupon diskon by id
     Route::get('kupon-by-id-customer/{id}', 'Api\KuponDiskonCustomerController@searchByIdCustomer'); //get data kupon diskon by id customer
     Route::delete('kupon-customer-delete/{id}', 'Api\KuponDiskonCustomerController@deleteKupon'); //soft delete data kupon diskon
+
+    Route::get('laporan-harian/{id_menu}/{bulan}/{tahun}', 'Api\PesananController@laporanHarian'); // get Laporan Harian
+    Route::get('laporan-bulanan/{id_menu}/{tahun}', 'Api\PesananController@laporanBulanan'); // get Laporan Bulanan
+    Route::get('laporan-tahunan/{id_menu}', 'Api\PesananController@laporanTahunan'); // get Laporan Tahunan
     
 });

@@ -280,4 +280,215 @@ class PesananController extends Controller
             'OUT_DATA' => $pesanan
         ]);
     }
+
+    public function laporanHarian($id_menu,$bulan,$tahun){
+
+        $tanggal=[];
+        $dataHarian=[];
+        $total=0;
+
+        $matchThese = ['id_menu' => $id_menu];
+        $menu = menu::where($matchThese)->first();
+
+        if($bulan == 2){
+            if($tahun % 4 == 0){
+                $jumlahHari = 28;
+            }else{
+                $jumlahHari = 29;
+            }
+        } else if($bulan==0 || $bulan == 1 || $bulan == 3 || $bulan == 5 || $bulan == 7 || $bulan == 8 || $bulan == 10 || $bulan == 12){
+            $jumlahHari = 31;
+        }else {
+            $jumlahHari = 30;
+        }
+        
+        for($i=1; $i<=$jumlahHari;$i++){
+            if($bulan == 1){
+                $bulanString = "Januari";
+            }else if($bulan == 2){
+                $bulanString = "Februari";
+            }else if($bulan == 3){
+                $bulanString = "Maret";
+            }else if($bulan == 4){
+                $bulanString = "April";
+            }else if($bulan == 5){
+                $bulanString = "Mei";
+            }else if($bulan == 6){
+                $bulanString = "Juni";
+            }else if($bulan == 7){
+                $bulanString = "Juli";
+            }else if($bulan == 8){
+                $bulanString = "Agustus";
+            }else if($bulan == 9){
+                $bulanString = "September";
+            }else if($bulan == 10){
+                $bulanString = "Oktober";
+            }else if($bulan == 11){
+                $bulanString = "November";
+            }else if($bulan == 12){
+                $bulanString = "Desember";
+            }
+            $date = $tahun."-".$bulan."-".$i;
+            $dateString = $i." ".$bulanString." ".$tahun;
+
+            $jumlah= DB::table('pesanans')
+            ->join('menus','menus.id_menu','pesanans.id_menu')
+            ->selectRaw('ifnull(sum(pesanans.jumlah_pesanan), 0) as totalJumlah')
+            ->where('pesanans.status_selesai','=',1)
+            ->where('menus.id_menu','=',$id_menu)
+            ->whereDay('pesanans.created_at','=',$i)
+            ->whereMonth('pesanans.created_at','=',$bulan)
+            ->whereYear('pesanans.created_at','=',$tahun)
+            ->first();
+            
+            $jumlahTerjual= $jumlah->totalJumlah;
+
+            array_push($tanggal,$dateString);
+            array_push($dataHarian,$jumlahTerjual);
+
+            $total = $total + ($jumlahTerjual*$menu->harga_menu);
+            $tableHarian[$i]= array(
+                "nomor"=>$i,
+                "tanggal"=>$dateString,
+                "jumlah"=>$jumlahTerjual,
+                "pendapatan"=> ($jumlahTerjual*$menu->harga_menu)
+            );
+        }
+        return response([
+            'OUT_STAT'=> 'T',
+            'OUT_MESSAGE'=> "Berhasil tampil data laporan",
+            "OUT_DATA"=>$tableHarian,
+            "OUT_JUMLAH"=>$dataHarian,
+            "OUT_TANGGAL"=>$tanggal,
+            'MENU_NAME'=>$menu->nama_menu,
+            'MONTH_NAME'=>$bulanString,
+            'TOTAL'=>$total,
+        ]);
+    }
+
+    public function laporanBulanan($id_menu,$tahun){
+
+        $data = [];
+        $date=[];
+        $total=0;
+
+        $matchThese = ['id_menu' => $id_menu];
+        $menu = menu::where($matchThese)->first();
+
+        for($i=1;$i<=12;$i++){
+
+            if($i == 1){
+                $dateString = 'Januari '.$tahun;
+            }else if($i == 2){
+                $dateString = 'Februari '.$tahun;
+            }else if($i == 3){
+                $dateString = 'Maret '.$tahun;
+            }else if($i == 4){
+                $dateString = 'April '.$tahun;
+            }else if($i == 5){
+                $dateString = 'Mei '.$tahun;
+            }else if($i == 6){
+                $dateString = 'Juni '.$tahun;
+            }else if($i == 7){
+                $dateString = 'Juli '.$tahun;
+            }else if($i == 8){
+                $dateString = 'Agustus '.$tahun;
+            }else if($i == 9){
+                $dateString = 'September '.$tahun;
+            }else if($i == 10){
+                $dateString = 'Oktober '.$tahun;
+            }else if($i == 11){
+                $dateString = 'November '.$tahun;
+            }else if($i == 12){
+                $dateString = 'Desember '.$tahun;
+            }
+
+            $jumlah= DB::table('pesanans')
+            ->join('menus','menus.id_menu','pesanans.id_menu')
+            ->selectRaw('ifnull(sum(pesanans.jumlah_pesanan), 0) as totalJumlah')
+            ->where('pesanans.status_selesai','=',1)
+            ->where('menus.id_menu','=',$id_menu)
+            ->whereMonth('pesanans.created_at','=',$i)
+            ->whereYear('pesanans.created_at','=',$tahun)
+            ->get();
+            
+            
+
+            foreach($jumlah as $lap){
+                array_push($data,$lap->totalJumlah);
+                $jumlahTerjual= $lap->totalJumlah;
+            }
+
+            array_push($date,$dateString);
+
+            $total = $total + ($jumlahTerjual*$menu->harga_menu);
+            $tableBulanan[$i]= array(
+                "nomor"=>$i,
+                "tanggal"=>$dateString,
+                "jumlah"=>$jumlahTerjual,
+                "pendapatan"=> ($jumlahTerjual*$menu->harga_menu)
+            );
+        } 
+
+        return response([
+            'OUT_STAT' => "T",
+            'OUT_MESSAGE' => 'Berhasil tampil data laporan',
+            'OUT_DATA' => $data,
+            'OUT_TANGGAL'=> $date,
+            'OUT_TABLE'=>$tableBulanan,
+            'MENU_NAME'=>$menu->nama_menu,
+            'TOTAL'=>$total,
+        ]);
+    }
+
+    public function laporanTahunan($id_menu){
+
+        $data = [];
+        $tahun = [];
+        $total = 0;
+        $nomor = 0;
+
+        $matchThese = ['id_menu' => $id_menu];
+        $menu = menu::where($matchThese)->first();
+
+        for($i=2020;$i<=2022;$i++){
+
+            $yearString = 'Tahun '.$i;
+
+            $jumlah = DB::table('pesanans')
+            ->join('menus','menus.id_menu','pesanans.id_menu')
+            ->selectRaw('ifnull(sum(pesanans.jumlah_pesanan), 0) as totalJumlah')
+            ->where('pesanans.status_selesai','=',1)
+            ->where('menus.id_menu','=',$id_menu)
+            ->whereYear('pesanans.created_at','=',$i)
+            ->get();
+            
+
+            foreach($jumlah as $lap){
+                array_push($data,$lap->totalJumlah);
+                $jumlahTerjual= $lap->totalJumlah;
+            }
+
+            array_push($tahun,$yearString);
+            $nomor++;
+
+            $total = $total + ($jumlahTerjual*$menu->harga_menu);
+            $tableTahunan[$i]= array(
+                "nomor"=>$nomor,
+                "tanggal"=>$yearString,
+                "jumlah"=>$jumlahTerjual,
+                "pendapatan"=> ($jumlahTerjual*$menu->harga_menu)
+            );
+        } 
+
+        return response([
+            'OUT_STAT' => "T",
+            'OUT_MESSAGE' => 'Berhasil tampil data laporan',
+            'OUT_DATA' => $data,
+            'OUT_TANGGAL'=> $tahun,
+            'OUT_TABLE'=>$tableTahunan,
+            'MENU_NAME'=>$menu->nama_menu,
+            'TOTAL'=>$total,
+        ]);
+    }
 }
