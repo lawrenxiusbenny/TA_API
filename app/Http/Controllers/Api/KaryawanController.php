@@ -166,14 +166,14 @@ class KaryawanController extends Controller
         if($Karyawan->save()){
             return response([
                 'OUT_STAT' => "T",
-                'OUT_MESSAGE' => 'Berhasil update data karyawan',
+                'OUT_MESSAGE' => 'Berhasil ubah data karyawan',
                 'OUT_DATA' => $Karyawan
             ]);
         } 
         
         return response([
             'OUT_STAT' => "F",
-            'OUT_MESSAGE' => 'Gagal update data karyawan',
+            'OUT_MESSAGE' => 'Gagal ubah data karyawan',
             'OUT_DATA' => null
         ]);
     }

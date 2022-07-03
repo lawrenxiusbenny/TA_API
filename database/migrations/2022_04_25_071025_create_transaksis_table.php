@@ -22,6 +22,7 @@ class CreateTransaksisTable extends Migration
             $table->string('metode_pembayaran');  
             $table->string('nama_metode')->nullable();  
             $table->string('status_transaksi')->default("Belum Lunas");
+            $table->string('va_number_or_link_payment')->nullable();  
             $table->timestamps();
             $table->primary('id_transaksi');
         });

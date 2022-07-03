@@ -129,7 +129,6 @@ class KuponDiskonController extends Controller
             if($kuponCustomer!=null){
                 foreach($kuponCustomer as $kc){
                     $kc->id_status_kupon = 3;
-                    $kc->status_hapus = 1;
                     $kc->save();
                 }
             }

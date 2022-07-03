@@ -78,6 +78,48 @@ class CustomerController extends Controller
             'OUT_DATA' => null
         ]);
     }
+    
+    //get data by id mobile
+    public function searchMobile($id){
+        $matchThese=["customers.id_customer"=>$id];
+        $customer = Customer::where($matchThese)->first();
+        if($customer == null){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Data customer tidak ditemukan',
+                'OUT_DATA' => null
+            ]);
+        }else{
+            if($customer->id_royalty_point == null){
+                return response([
+                    'OUT_STAT' => "T",
+                    'OUT_MESSAGE' => 'Berhasil tampil data customer',
+                    'OUT_DATA' => [$customer]
+                ]);
+            }else{
+                $customer2 = DB::table('customers')
+                ->join('royalty_points','customers.id_royalty_point','royalty_points.id_royalty_point')
+                ->where($matchThese)
+                ->get();
+                
+                if(count($customer2) > 0){
+                    return response([
+                        'OUT_STAT' => "T",
+                        'OUT_MESSAGE' => 'Berhasil tampil data customer',
+                        'OUT_DATA' => $customer2
+                    ]);
+                }
+        
+                return response([
+                    'OUT_STAT' => "F",
+                    'OUT_MESSAGE' => 'Tidak ada data customer dengan id royalty point tertera pada database',
+                    'OUT_DATA' => null
+                ]);
+            }
+            
+        }
+    }
+    
 
     //update data
     public function update(Request $request, $id){
@@ -98,17 +140,183 @@ class CustomerController extends Controller
         if($customer->save()){
             return response([
                 'OUT_STAT' => "T",
-                'OUT_MESSAGE' => 'Berhasil update data customer',
+                'OUT_MESSAGE' => 'Berhasil ubah data customer',
                 'OUT_DATA' => $customer
             ]);
         } 
         
         return response([
             'OUT_STAT' => "F",
-            'OUT_MESSAGE' => 'Gagal update data customer',
+            'OUT_MESSAGE' => 'Gagal ubah data customer',
             'OUT_DATA' => null
         ]);
     }
+    
+    public function updateMobileName(Request $request,$id){
+        
+    
+        $customer = Customer::where('id_customer','=', $id)->first();
+        if(is_null($customer)){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Customer tidak ditemukan',
+                'OUT_DATA' => null
+            ]);
+        }
+
+        $updateData = $request->all();
+        $customer->nama_customer = $updateData['nama_customer'];
+        
+        if($customer->save()){
+            return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil ubah nama lengkap',
+                'OUT_DATA' => $customer
+            ]);
+        } 
+        
+        return response([
+            'OUT_STAT' => "F",
+            'OUT_MESSAGE' => 'Berhasil ubah nama lengkap',
+            'OUT_DATA' => null
+        ]);
+    }
+    
+    public function updateMobileDate(Request $request,$id){
+        
+    
+        $customer = Customer::where('id_customer','=', $id)->first();
+        if(is_null($customer)){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Customer tidak ditemukan',
+                'OUT_DATA' => null
+            ]);
+        }
+
+        $updateData = $request->all();
+        $customer->tanggal_lahir_customer = $updateData['tanggal_lahir_customer'];
+        
+        if($customer->save()){
+            return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil ubah tanggal lahir',
+                'OUT_DATA' => $customer
+            ]);
+        } 
+        
+        return response([
+            'OUT_STAT' => "F",
+            'OUT_MESSAGE' => 'Gagal ubah tanggal lahir',
+            'OUT_DATA' => null
+        ]);
+    }
+    
+    public function updateMobilePhone(Request $request,$id){
+        
+        $customer = Customer::where('id_customer','=', $id)->first();
+        if(is_null($customer)){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Customer tidak ditemukan',
+                'OUT_DATA' => null
+            ]);
+        }
+
+        $updateData = $request->all();
+        $customer->telepon_customer = $updateData['telepon_customer'];
+        
+        if($customer->save()){
+            return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil ubah nomor HP',
+                'OUT_DATA' => $customer
+            ]);
+        } 
+        
+        return response([
+            'OUT_STAT' => "F",
+            'OUT_MESSAGE' => 'Gagal ubah nomor HP',
+            'OUT_DATA' => null
+        ]);
+    }
+    
+    public function updateMobilePass(Request $request,$id){
+        
+    
+        $customer = Customer::where('id_customer','=', $id)->first();
+        if(is_null($customer)){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Customer tidak ditemukan',
+                'OUT_DATA' => null
+            ]);
+        }
+
+        $updateData = $request->all();
+        
+        $checkPassword = Hash::check($request->old_password, $customer->password_customer);
+        
+        if($checkPassword){
+            $newPassword = Hash::make($request->new_password);
+            
+            $customer->password_customer = $newPassword;
+            
+            if($customer->save()){
+                return response([
+                    'OUT_STAT' => "T",
+                    'OUT_MESSAGE' => 'Berhasil ubah password',
+                    'OUT_DATA' => $customer
+                ]);    
+            }else{
+                return response([
+                    'OUT_STAT' => "F",
+                    'OUT_MESSAGE' => 'Gagal ubah password',
+                    'OUT_DATA' => $customer
+                ]);    
+            }
+            
+        } 
+        
+        return response([
+            'OUT_STAT' => "F",
+            'OUT_MESSAGE' => 'Password lama tidak sesuai',
+            'OUT_DATA' => null
+        ]);
+    }
+    
+    public function updatePass(Request $request,$id){
+        
+    
+        $customer = Customer::where('id_customer','=', $id)->first();
+        if(is_null($customer)){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Customer tidak ditemukan',
+                'OUT_DATA' => null
+            ]);
+        }
+
+        $updateData = $request->all();
+        
+        $newPassword = Hash::make($request->new_password);
+        $customer->password_customer = $newPassword;
+        
+        if($customer->save()){
+            return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil ubah password',
+                'OUT_DATA' => $customer
+            ]);    
+        }else{
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Gagal ubah password',
+                'OUT_DATA' => $customer
+            ]);    
+        }
+    }
+    
 
     //Login
     public function login(Request $request){
@@ -118,7 +326,7 @@ class CustomerController extends Controller
         if(is_null($customer)){
             return response([
                 'OUT_STAT' => "F",
-                'OUT_MESSAGE' => 'Email tidak terdaftar',
+                'OUT_MESSAGE' => 'Email tidak ditemukan',
                 'OUT_DATA' => null
             ]);
         }
@@ -126,7 +334,7 @@ class CustomerController extends Controller
         if($customer->status_hapus == 1){
             return response([
                 'OUT_STAT' => "F",
-                'OUT_MESSAGE' => 'Gagal login, data customer telah dihapus',
+                'OUT_MESSAGE' => 'Proses masuk gagal, data customer telah dihapus',
                 'OUT_DATA' => null
             ]);
         }
@@ -135,14 +343,14 @@ class CustomerController extends Controller
         if($checkPassword){
             return response([
                 'OUT_STAT' => "T",
-                'OUT_MESSAGE' => 'Berhasil Login Ke dalam Sistem',
+                'OUT_MESSAGE' => 'Proses masuk berhasil',
                 'OUT_DATA' => $customer,
                 
             ]); 
         }else{
             return response([
                 'OUT_STAT' => "F",
-                'OUT_MESSAGE' => 'Password anda salah',
+                'OUT_MESSAGE' => 'Kredensial invalid',
                 'OUT_DATA' => null
             ]);
         }

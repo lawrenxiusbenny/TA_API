@@ -3,13 +3,54 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('laporan-penjualan-semua-produk-test/{tipe}/{bulan}/{tahun}', 'Api\PesananController@laporanSemua'); // get Laporan Penjualan Semua
+
 Route::post('/login',"Api\KaryawanController@login"); // login-karyawan
+
 Route::post('/login-customer',"Api\CustomerController@login"); // login-customer
+Route::post('registration', 'Api\CustomerController@store'); //insert new customer
+
+Route::get('pesanan-mobile/{id_customer}', 'Api\PesananController@searchPesanan'); // get all pesanan BY ID CUSTOMER and STATUS_SELESAI = 0
+  
+Route::post('create-pesanan-mobile', 'Api\PesananController@store'); //insert data pesanan
+
+Route::put('update-pesanan-mobile/{id}', 'Api\PesananController@update'); //update data pesanan (jumlah)
+
+ Route::delete('delete-pesanan-mobile/{id}', 'Api\PesananController@delete'); //delete data pesanan (jumlah)
+ 
+ Route::put('customer-name/{id}','Api\CustomerController@updateMobileName');
+ Route::put('customer-date/{id}','Api\CustomerController@updateMobileDate');
+ Route::put('customer-phone/{id}','Api\CustomerController@updateMobilePhone');
+ Route::put('customer-password/{id}','Api\CustomerController@updateMobilePass');
+ 
+ Route::get('customer-mobile/{id}', 'Api\CustomerController@searchMobile'); //search customer by id
+ 
+ Route::get('transaksi-mobile/{id_customer}', 'Api\TransaksiController@searchByIdCustomer'); //get all data transaksi by id customer
+ 
+  Route::get('transaksi-mobile-show/{id_transaksi}', 'Api\TransaksiController@searchByIdTransaksi'); //get all data transaksi by id customer
+ 
+ Route::get('pesanan-mobile-transaksi/{id_transaksi}', 'Api\PesananController@searchPesananByTransaksi'); // get all pesanan BY ID transaksi
+ 
+ Route::get('kupon-by-id-customer-mobile/{id}', 'Api\KuponDiskonCustomerController@searchByIdCustomer'); //get data kupon diskon by id customer
+ Route::get('kupon-list-mobile', 'Api\KuponDiskonController@index'); //get all data kupon diskon
+
+Route::post('create-kupon-customer-mobile', 'Api\KuponDiskonCustomerController@store');
+
+Route::post('transaksi-mobile', 'Api\TransaksiController@store'); //insert data transaksi
+
+
+
+
+Route::get('menu-mobile', 'Api\MenuController@index'); // get all menu 
+Route::get('menu-mobile-recommend', 'Api\MenuController@getRandom'); // get all menu 
 
 Route::group(['middleware' => 'auth:api'], function(){
+    
     Route::get('role', 'Api\RoleController@getAllName'); //get all role
     Route::get('role-name/{name}', 'Api\RoleController@getIdByName'); //get id role by role name
     Route::get('role-id/{id}', 'Api\RoleController@getNameById'); //get role name by id role
@@ -33,12 +74,16 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::get('customer', 'Api\CustomerController@index'); //get all customer
     Route::get('customer/{id}', 'Api\CustomerController@search'); //search customer by id
     Route::put('customer/{id}', 'Api\CustomerController@update'); //update data customer
+    Route::put('customer-edit-password/{id}', 'Api\CustomerController@updatePass'); //update password customer
     Route::put('customer-soft/{id}', 'Api\CustomerController@softDelete'); //soft-delete customer
     Route::get('customer-name', 'Api\CustomerController@getAllName'); //get all data customer name
     Route::get('customer-name-2', 'Api\CustomerController@getAllNameWithNullRoyaltyPoint'); //get all data customer name
+    
+    
 
     Route::post('pesanan', 'Api\PesananController@store'); //insert data pesanan
     Route::get('pesanan', 'Api\PesananController@index'); // get all pesanan
+    Route::get('pesanan-pending', 'Api\PesananController@indexPending'); // get all pesanan pending
     Route::get('pesanan/{id_customer}', 'Api\PesananController@searchPesanan'); // get all pesanan BY ID CUSTOMER and STATUS_SELESAI = 0
     Route::put('pesanan/{id}', 'Api\PesananController@update'); //update data pesanan (jumlah)
     Route::delete('pesanan/{id}', 'Api\PesananController@delete'); //delete data pesanan (jumlah)
@@ -62,6 +107,7 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::put('transaksi/{id_transaksi}', 'Api\TransaksiController@update'); //Update data transaksi
     Route::put('transaksi-status/{id_transaksi}', 'Api\TransaksiController@updateStatusPembayaran'); //Update status transaksi
     Route::delete('transaksi/{id_transaksi}', 'Api\TransaksiController@deleteTransaction'); //Delete data transaksi
+    Route::get('pesanan-transaksi/{id_transaksi}', 'Api\PesananController@searchPesananByTransaksi'); // get all pesanan BY ID transaksi
     
 
     Route::post('point', 'Api\RoyaltyPointController@store'); //insert data royalty point
@@ -87,5 +133,12 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::get('laporan-harian/{id_menu}/{bulan}/{tahun}', 'Api\PesananController@laporanHarian'); // get Laporan Harian
     Route::get('laporan-bulanan/{id_menu}/{tahun}', 'Api\PesananController@laporanBulanan'); // get Laporan Bulanan
     Route::get('laporan-tahunan/{id_menu}', 'Api\PesananController@laporanTahunan'); // get Laporan Tahunan
+    
+    Route::get('laporan-penjualan-semua-produk/{tipe}/{bulan}/{tahun}', 'Api\PesananController@laporanSemua'); // get Laporan Penjualan Semua Produk
+    
+    Route::get('laporan-harian-pendapatan/{bulan}/{tahun}', 'Api\TransaksiController@laporanHarianPendapatan'); // get Laporan Harian pendapatan
+    Route::get('laporan-bulanan-pendapatan/{tahun}', 'Api\TransaksiController@laporanBulananPendapatan'); // get Laporan Harian pendapatan
+     Route::get('laporan-tahunan-pendapatan', 'Api\TransaksiController@laporanTahunanPendapatan'); // get Laporan Harian pendapatan
+    
     
 });

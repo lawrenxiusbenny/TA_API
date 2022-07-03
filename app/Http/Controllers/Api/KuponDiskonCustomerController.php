@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use App\daftar_kupon_customer;
+use App\customer;
+use App\royalty_point;
 
 class KuponDiskonCustomerController extends Controller
 {
@@ -16,18 +18,43 @@ class KuponDiskonCustomerController extends Controller
         $data = new daftar_kupon_customer;
         $data->id_customer = $request->id_customer;
         $data->id_kupon_diskon = $request->id_kupon_diskon;
+        
+        $jumlah_point_tukar = $request->jumlah_point_tukar;
+        
+        $matchThese = ['id_customer' => $request->id_customer];
+        
+        $customer = customer::where($matchThese)->first();
+        
+        if($customer == null){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Gagal klaim kupon, data customer tidak ditemukan',
+                'OUT_DATA' => null
+            ]);
+        }
+        
+        $point = royalty_point::where('id_royalty_point','=',$customer->id_royalty_point)->first();
+        if($point == null){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Gagal klaim kupon, data royalty point tidak ditemukan',
+                'OUT_DATA' => null
+            ]);
+        }
+        
+        $point->jumlah_point = $point->jumlah_point - $jumlah_point_tukar;
 
-        if($data->save()){
+        if($data->save() && $point->save()){
             return response([
                 'OUT_STAT' => "T",
-                'OUT_MESSAGE' => 'Berhasil tambah data kupon diskon (customer)',
+                'OUT_MESSAGE' => 'Berhasil klaim kupon',
                 'OUT_DATA' => $data
             ]);
         }
 
         return response([
             'OUT_STAT' => "F",
-            'OUT_MESSAGE' => 'Gagal tambah data kupon diskon (customer)',
+            'OUT_MESSAGE' => 'Gagal klaim kupon',
             'OUT_DATA' => null
         ]);
     }
@@ -105,12 +132,12 @@ class KuponDiskonCustomerController extends Controller
     }
     //get data by id kupon customer
     public function searchByIdCustomer($id){
+        $matchThese=["daftar_kupon_customers.id_customer"=>$id,"daftar_kupon_customers.id_status_kupon"=>1];
         $kupon = DB::table('daftar_kupon_customers')        
         ->join('daftar_kupon_diskons','daftar_kupon_customers.id_kupon_diskon','daftar_kupon_diskons.id_kupon_diskon')
-        ->join('customers','daftar_kupon_customers.id_customer','customers.id_customer')
         ->join('status_kupons','daftar_kupon_customers.id_status_kupon','status_kupons.id_status_kupon')
-        ->select('daftar_kupon_customers.created_at','customers.*','daftar_kupon_diskons.*','status_kupons.*')
-        ->where('daftar_kupon_customers.id_customer','=', $id)
+        ->select('daftar_kupon_customers.created_at','daftar_kupon_customers.id_kupon_customer','daftar_kupon_diskons.*','status_kupons.*')
+        ->where($matchThese)
         ->get();
         
         if(count($kupon) != 0){

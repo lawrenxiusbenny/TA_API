@@ -76,9 +76,43 @@ class PesananController extends Controller
         ->join('menus','menus.id_menu','pesanans.id_menu')
         ->join('customers','customers.id_customer','pesanans.id_customer')
         ->join('status_pesanans','status_pesanans.id_status_pesanan','pesanans.id_status_pesanan')
-        ->where('pesanans.status_selesai','=',0)
-        ->orderBy('pesanans.created_at','ASC')
+        ->where('pesanans.status_selesai','=',1)
         ->orderBy('pesanans.id_status_pesanan','ASC')
+        ->orderBy('pesanans.created_at','ASC')
+        ->get();
+        
+        if(count($pesanan)){
+            return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil tampil data pesanan',
+                'OUT_DATA' => $pesanan
+            ]);
+        }
+
+        if(count($pesanan)<1){
+            return response([
+                'OUT_STAT' => "F",
+                'OUT_MESSAGE' => 'Belum ada pesanan yang dilakukan',
+                'OUT_DATA' => null
+            ]);
+        }
+
+        return response([
+            'OUT_STAT' => "F",
+            'OUT_MESSAGE' => 'Gagal tampil data pesanan',
+            'OUT_DATA' => null
+        ]);
+    }
+    
+    //get all pesanan pending
+    public function indexPending(){
+        $pesanan = DB::table('pesanans')
+        ->join('menus','menus.id_menu','pesanans.id_menu')
+        ->join('customers','customers.id_customer','pesanans.id_customer')
+        ->join('status_pesanans','status_pesanans.id_status_pesanan','pesanans.id_status_pesanan')
+        ->where('pesanans.status_selesai','=',0)
+        ->orderBy('pesanans.id_status_pesanan','ASC')
+        ->orderBy('pesanans.created_at','ASC')
         ->get();
         
         if(count($pesanan)){
@@ -239,7 +273,12 @@ class PesananController extends Controller
             ]);
         }
 
-        $pesanan->id_status_pesanan = 2;
+        if($pesanan->id_status_pesanan == 1){
+            $pesanan->id_status_pesanan = 2;    
+        }else{
+            $pesanan->id_status_pesanan = 1;
+        }
+        
 
         if($pesanan->save()){
             return response([
@@ -451,7 +490,7 @@ class PesananController extends Controller
         $matchThese = ['id_menu' => $id_menu];
         $menu = menu::where($matchThese)->first();
 
-        for($i=2020;$i<=2022;$i++){
+        for($i=2020;$i<=date('Y');$i++){
 
             $yearString = 'Tahun '.$i;
 
@@ -463,7 +502,6 @@ class PesananController extends Controller
             ->whereYear('pesanans.created_at','=',$i)
             ->get();
             
-
             foreach($jumlah as $lap){
                 array_push($data,$lap->totalJumlah);
                 $jumlahTerjual= $lap->totalJumlah;
@@ -489,6 +527,93 @@ class PesananController extends Controller
             'OUT_TABLE'=>$tableTahunan,
             'MENU_NAME'=>$menu->nama_menu,
             'TOTAL'=>$total,
+        ]);
+    }
+    
+    public function laporanSemua($tipe,$bulan,$tahun){
+        //dapetin nama menu
+        $matchThese=["status_hapus"=>0,"id_jenis_menu"=>$tipe];
+        $menu = menu::where($matchThese)->get();
+        $jumlahMenu = count($menu);
+        
+        if($bulan == 2){
+            if($tahun % 4 == 0){
+                $jumlahHari = 28;
+            }else{
+                $jumlahHari = 29;
+            }
+        } else if($bulan==0 || $bulan == 1 || $bulan == 3 || $bulan == 5 || $bulan == 7 || $bulan == 8 || $bulan == 10 || $bulan == 12){
+            $jumlahHari = 31;
+        }else {
+            $jumlahHari = 30;
+        }
+        
+        // for pertama untuk hitung setiap menunya
+        for($i=0;$i<$jumlahMenu;$i++){
+            
+            $totalPenjualan[$i]=0;
+            $penjualanPerHari=[];
+            
+            for($j=0;$j<$jumlahHari;$j++){
+                //hitung penjualan menu di bulan dan tahun tertentu
+                if($j < 10){
+                    $date = $tahun."-".$bulan."-0".$j;    
+                }else{
+                    $date = $tahun."-".$bulan."-".$j;    
+                }
+                
+                if($bulan==13){
+                    $penjualanPerHari[$j] = DB::table('menus')
+                    ->join('pesanans','menus.id_menu','pesanans.id_menu')
+                    ->selectRaw('ifnull(sum(pesanans.jumlah_pesanan), 0) as totalJumlah')
+                    ->where('menus.id_menu',"=",$menu[$i]->id_menu)
+                    ->where('menus.status_hapus',"=",0)
+                    ->where('pesanans.status_selesai','=',1)
+                    ->where('pesanans.id_transaksi','!=',null)
+                    ->where(function($query){
+                              $query->whereMonth('pesanans.created_at', 1)
+                                    ->orWhereMonth('pesanans.created_at', 2)
+                                    ->orWhereMonth('pesanans.created_at', 3)
+                                    ->orWhereMonth('pesanans.created_at', 4)
+                                    ->orWhereMonth('pesanans.created_at', 5)
+                                    ->orWhereMonth('pesanans.created_at', 6)
+                                    ->orWhereMonth('pesanans.created_at', 7)
+                                    ->orWhereMonth('pesanans.created_at', 8)
+                                    ->orWhereMonth('pesanans.created_at', 9)
+                                    ->orWhereMonth('pesanans.created_at', 10)
+                                    ->orWhereMonth('pesanans.created_at', 11)
+                                    ->orWhereMonth('pesanans.created_at', 12);
+                            })
+                    ->whereDay('pesanans.created_at',$j)
+                    ->whereYear('pesanans.created_at','=',$tahun)
+                    ->first();  
+                }else{
+                    $penjualanPerHari[$j] = DB::table('menus')
+                    ->join('pesanans','menus.id_menu','pesanans.id_menu')
+                    ->selectRaw('ifnull(sum(pesanans.jumlah_pesanan), 0) as totalJumlah')
+                    ->where('menus.id_menu',"=",$menu[$i]->id_menu)
+                    ->where('menus.status_hapus',"=",0)
+                    ->where('pesanans.status_selesai','=',1)
+                    ->where('pesanans.id_transaksi','!=',null)
+                    ->whereDate('pesanans.created_at','=',$date)
+                    ->first();  
+                }
+                $totalPenjualan[$i] = $totalPenjualan[$i] + $penjualanPerHari[$j]->totalJumlah;
+            }   
+            $jumlahTertinggi = max($penjualanPerHari);
+            
+            $penjualan[$i] = array(
+                    "nomor"=>$i+1,
+                    "nama_menu"=>$menu[$i]->nama_menu,
+                    "penjualanTertinggi"=> $jumlahTertinggi,
+                    "totalPenjualan"=>$totalPenjualan[$i],
+                    "jumlahHari"=>$jumlahHari,
+            );
+        }
+        
+        return response([
+            'message'=> "tampil data penjualan",
+            "data"=>$penjualan,
         ]);
     }
 }

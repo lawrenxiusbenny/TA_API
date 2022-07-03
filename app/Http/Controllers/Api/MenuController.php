@@ -73,6 +73,18 @@ class MenuController extends Controller
         ]);
     }
 
+    //get data random
+    public function getRandom(){
+        $matchThese=["menus.status_hapus"=>0,"menus.id_jenis_menu"=>1]; 
+        $data = menu::inRandomOrder()->where($matchThese)->limit(3)->get();
+        
+        return response([
+                'OUT_STAT' => "T",
+                'OUT_MESSAGE' => 'Berhasil tampil data menu',
+                'OUT_DATA' => $data
+            ]);
+    }
+    
     //get data by id menu
     public function searchMenu($id){
         $matchThese=["menus.status_hapus"=>0,"menus.id_menu"=>$id];
@@ -226,6 +238,7 @@ class MenuController extends Controller
     public function getAllName(){
         $data = DB::table('menus')
         ->select('id_menu','nama_menu')
+        ->where('status_hapus','=','0')
         ->get();
 
         if(count($data)>0){

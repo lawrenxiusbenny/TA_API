@@ -13,7 +13,7 @@ class transaksi extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id_customer','id_karyawan','id_kupon_customer','total_harga','metode_pembayaran','nama_metode','status_transaksi'
+        'id_customer','id_karyawan','id_kupon_customer','total_harga','metode_pembayaran','nama_metode','status_transaksi','va_number_or_link_payment'
     ];
 
     public function getCreatedAtAttribute(){

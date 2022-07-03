@@ -21,7 +21,8 @@ class CreatePesanansTable extends Migration
             $table->bigInteger('id_customer');
             $table->integer('jumlah_pesanan');
             $table->double('sub_total');
-            $table->string('catatan')>nullable();;
+            $table->string('catatan')>nullable();
+            $table->string('nomor_meja')->nullable();
             $table->integer('status_selesai')->default(0);
             $table->timestamps();
         });
